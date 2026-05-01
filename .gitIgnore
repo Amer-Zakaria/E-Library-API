@@ -1,0 +1,6 @@
+scratch/
+uploads/
+dist/
+.env
+node_modules/
+*.log
