@@ -5,6 +5,7 @@ import validation from "./startup/validation.js";
 import middlewares from "./startup/middleware.js";
 import db from "./startup/db.js";
 import routes from "./startup/routes.js";
+import makeServerStayAlive from "./startup/makeServerStayAlive.js";
 
 const app = express();
 
@@ -14,6 +15,7 @@ validation();
 middlewares(app);
 db();
 routes(app);
+makeServerStayAlive();
 
 export const isErrorWithStack: boolean = true;
 
