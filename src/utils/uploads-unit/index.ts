@@ -1,15 +1,18 @@
 import type { Request, Response, NextFunction } from "express";
-import * as path from "path";
 import { getFieldsConfig } from "./upload.config.js";
 import { FileStorageService } from "./file-storage.service.js";
 import { FileUpdateService } from "./file-update.service.js";
 import { FileUtils } from "./file.utils.js";
+import { S3Client, type S3ClientConfig } from "@aws-sdk/client-s3";
 
+const region = process.env.AWS_BUCKET_REGION!;
+const accessKeyId = process.env.AWS_ACCESS_KEY!;
+const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY!;
 const basePath = process.env.NODE_ENV === "production" ? "" : "experimental";
-const publicPath = path.join(process.cwd(), "public");
 
 export class FileUploadService {
   private static instances: Map<string, FileUploadService> = new Map();
+  private readonly s3Client: S3Client;
   private readonly uploadsBasePath: string;
   private readonly endpoint: string;
 
@@ -21,8 +24,23 @@ export class FileUploadService {
     this.endpoint = endpoint;
     this.uploadsBasePath = basePath;
 
+    // Init s3 client instance
+    const s3Config: S3ClientConfig = {
+      region,
+      credentials: {
+        accessKeyId,
+        secretAccessKey,
+      },
+    };
+    const s3Client = new S3Client(s3Config);
+    this.s3Client = s3Client;
+
     // Initialize all services
-    this.fileUtils = new FileUtils(endpoint, this.uploadsBasePath, publicPath);
+    this.fileUtils = new FileUtils(
+      endpoint,
+      this.uploadsBasePath,
+      this.s3Client,
+    );
     this.storageService = new FileStorageService(endpoint, this.fileUtils);
     this.updateService = new FileUpdateService(endpoint, this.fileUtils);
   }

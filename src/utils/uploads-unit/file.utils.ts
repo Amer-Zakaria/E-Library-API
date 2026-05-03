@@ -1,13 +1,23 @@
 import type { Request } from "express";
 import * as path from "path";
-import * as fs from "fs/promises";
+import {
+  DeleteObjectCommand,
+  type DeleteObjectCommandInput,
+  DeleteObjectsCommand,
+  ListObjectsV2Command,
+  PutObjectCommand,
+  type PutObjectCommandInput,
+  S3Client,
+} from "@aws-sdk/client-s3";
 import { getFieldConfig } from "./upload.config.js";
+
+const bucketName = process.env.AWS_BUCKET_NAME!;
 
 export class FileUtils {
   constructor(
     private endpoint: string,
     private uploadsBasePath: string,
-    private publicPath: string,
+    private s3Client: S3Client,
   ) {}
 
   public async uploadFile(
@@ -18,24 +28,33 @@ export class FileUtils {
     mimetype: string,
     req: Request,
   ) {
+    // Get field configuration to determine folder structure
     const fieldConfig = getFieldConfig(this.endpoint, fieldName);
+
+    // Generate unique filename (same logic as multer was using)
     const uniqueFileName = this.generateUniqueFilename(originalFileName);
 
-    const relativePath = this.buildStructuredKey(
+    // Build structured key path: experimental/projects/123/mainImage/timestamp-random-filename.jpg
+    const key = this.buildStructuredKey(
       entityId,
       fieldConfig.folderName,
       uniqueFileName,
     );
 
-    const absolutePath = path.join(this.publicPath, relativePath);
+    const uploadParams: PutObjectCommandInput = {
+      Bucket: bucketName,
+      Body: fileBuffer,
+      Key: key,
+      ContentType: mimetype,
+    };
 
-    // Make sure the directory exists before writing
-    await fs.mkdir(path.dirname(absolutePath), { recursive: true });
-    await fs.writeFile(absolutePath, fileBuffer);
+    // Upload to S3
+    await this.s3Client.send(new PutObjectCommand(uploadParams));
 
-    this.trackUploadedFile(req, relativePath);
+    this.trackUploadedFile(req, key);
 
-    return relativePath;
+    // Return the full key for storage in database
+    return key;
   }
 
   public generateUniqueFilename(originalName: string): string {
@@ -47,31 +66,39 @@ export class FileUtils {
     return `${timestamp}-${randomStr}-${name}${ext}`;
   }
 
-  public async deleteFile(key: string) {
-    const absolutePath = path.join(this.publicPath, key);
-    try {
-      await fs.unlink(absolutePath);
-    } catch (error) {
-      // Ignore if file doesn't exist
-    }
+  public deleteFile(key: string) {
+    const deleteParams: DeleteObjectCommandInput = {
+      Bucket: bucketName,
+      Key: key,
+    };
+
+    return this.s3Client.send(new DeleteObjectCommand(deleteParams));
   }
 
   public async bulkDeleteById(id: string) {
-    const relativeFolder = [this.uploadsBasePath, this.endpoint, id]
-      .filter(Boolean)
-      .join("/");
-    const absoluteFolder = path.join(this.publicPath, relativeFolder);
-
-    try {
-      await fs.rm(absoluteFolder, { recursive: true, force: true });
-    } catch (error) {
-      // Folder might not exist
+    const objects = await this.s3Client.send(
+      new ListObjectsV2Command({
+        Bucket: bucketName,
+        Prefix: `${[this.uploadsBasePath, this.endpoint, id].join("/")}/`,
+      }),
+    );
+    if (objects.Contents?.length) {
+      return this.s3Client.send(
+        new DeleteObjectsCommand({
+          Bucket: bucketName,
+          Delete: { Objects: objects.Contents.map(({ Key }) => ({ Key })) },
+        }),
+      );
     }
   }
 
   public async bulkDeleteByKeys(keys: string[]) {
-    const deletions = keys.map((key) => this.deleteFile(key));
-    await Promise.all(deletions);
+    return this.s3Client.send(
+      new DeleteObjectsCommand({
+        Bucket: bucketName,
+        Delete: { Objects: keys.map((Key) => ({ Key })) },
+      }),
+    );
   }
 
   private trackUploadedFile(req: Request, key: string): void {
