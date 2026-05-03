@@ -4,23 +4,11 @@ import type { FieldConfig, UploadConfig } from "./upload.types.js";
 const allowedImages = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
 export const UPLOAD_CONFIG: UploadConfig = {
-  projects: {
+  contents: {
     mainImage: {
       folderName: "mainImage",
       allowedMimes: allowedImages,
       maxCount: 1,
-      maxSize: 10 * 1024 * 1024, // 10 MB
-    },
-    heroImage: {
-      folderName: "heroImage",
-      allowedMimes: allowedImages,
-      maxCount: 1,
-      maxSize: 10 * 1024 * 1024, // 10 MB
-    },
-    gallery: {
-      folderName: "gallery",
-      allowedMimes: allowedImages,
-      maxCount: 20,
       maxSize: 10 * 1024 * 1024, // 10 MB
     },
     pdf: {
@@ -29,13 +17,11 @@ export const UPLOAD_CONFIG: UploadConfig = {
       maxCount: 1,
       maxSize: 100 * 1024 * 1024, // 100 MB
     },
-  },
-  resales: {
-    mainImage: {
-      folderName: "mainImage",
-      allowedMimes: allowedImages,
+    audio: {
+      folderName: "audio",
+      allowedMimes: ["audio/mpeg", "audio/wav", "audio/ogg", "audio/mp3"],
       maxCount: 1,
-      maxSize: 10 * 1024 * 1024, // 10 MB
+      maxSize: 200 * 1024 * 1024, // 200 MB
     },
     gallery: {
       folderName: "gallery",
@@ -44,31 +30,7 @@ export const UPLOAD_CONFIG: UploadConfig = {
       maxSize: 10 * 1024 * 1024, // 10 MB
     },
   },
-  destinations: {
-    img: {
-      folderName: "img",
-      allowedMimes: allowedImages,
-      maxCount: 1,
-      maxSize: 10 * 1024 * 1024, // 10 MB
-    },
-  },
-  services: {
-    img: {
-      folderName: "img",
-      allowedMimes: allowedImages,
-      maxCount: 1,
-      maxSize: 10 * 1024 * 1024, // 10 MB
-    },
-  },
-  articles: {
-    img: {
-      folderName: "img",
-      allowedMimes: allowedImages,
-      maxCount: 1,
-      maxSize: 10 * 1024 * 1024, // 10 MB
-    },
-  },
-  customerReviews: {
+  categories: {
     img: {
       folderName: "img",
       allowedMimes: allowedImages,
@@ -88,14 +50,14 @@ export const DEFAULT_CONFIG: FieldConfig = {
 
 export function getFieldConfig(
   endpoint: string,
-  fieldName: string
+  fieldName: string,
 ): FieldConfig {
   return UPLOAD_CONFIG[endpoint]?.[fieldName] || DEFAULT_CONFIG;
 }
 
 // Method to get fields configuration for a specific endpoint
 export function getFieldsConfig(
-  endpoint: string
+  endpoint: string,
 ): Array<{ name: string; maxCount: number }> {
   const endpointConfig = UPLOAD_CONFIG[endpoint];
 

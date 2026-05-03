@@ -11,7 +11,7 @@ export default function validateObjectId<T extends Document>(Model: Model<T>) {
   return async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<any> => {
     const { id } = req.params;
 
@@ -23,7 +23,7 @@ export default function validateObjectId<T extends Document>(Model: Model<T>) {
       });
 
     //check if the demanded document exists
-    const document = await Model.findById(id);
+    const document = await Model.findById(id).select("-password");
     if (!document)
       return res.status(404).json({
         message: "Not found!",

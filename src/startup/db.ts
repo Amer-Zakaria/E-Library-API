@@ -4,15 +4,7 @@ import { logger } from "../index.js";
 const FULL_URI = process.env.URI! + process.env.DB_BASE!;
 
 export default function db() {
-  connect(FULL_URI, {
-    family: 4,
-    maxPoolSize: 5, // Reduced from 100 to avoid overloading the database resources
-    minPoolSize: 1, // keep one up and ready
-    maxIdleTimeMS: 30000, // Close idle connections quickly
-    socketTimeoutMS: 120000, // Increase to 2 minutes for 200MB uploads
-    retryWrites: true,
-    w: "majority",
-  })
+  connect(FULL_URI)
     .then((mongoose) => {
       logger.info(`\nConnected to MongoDB "${FULL_URI}"`);
 

@@ -1,17 +1,17 @@
 import express from "express";
 import type { Request, Response } from "express";
 import {
-  getDestinations,
-  createDestination,
-  updateDestination,
-  deleteDestination,
-} from "../DB Helpers/destinations.js";
+  getCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+} from "../DB Helpers/categories.js";
 import paginationValidation from "../utils/paginationValidation.js";
 import { authz } from "../middleware/authz.js";
-import { Destination, updateDestinationSchema } from "../models/destination.js";
+import { Category, updateCategorySchema } from "../models/category.js";
 import validateReq from "../middleware/validateReq.js";
 import validateUniqueness from "../middleware/validateUniqueness.js";
-import { createDestinationSchema } from "../models/destination.js";
+import { createCategorySchema } from "../models/category.js";
 import validateObjectId from "../middleware/validateObjectId.js";
 import {
   createCleanupMiddleware,
@@ -23,7 +23,7 @@ import {
 import generateId from "../middleware/generateId.js";
 import parseJsonDataField from "../middleware/parseJsonDataField.js";
 
-const endpoint = "destinations";
+const endpoint = "categories";
 
 const router = express.Router();
 const dynamicUpload = createDynamicUploadMiddleware(endpoint);
@@ -33,18 +33,18 @@ router.get(
   "/",
   [validateReq(paginationValidation, "query")],
   async (req: Request, res: Response) => {
-    const destinations = await getDestinations(req.query);
-    res.json(destinations);
-  }
+    const categories = await getCategories(req.query);
+    res.json(categories);
+  },
 );
 
 router.get(
   "/:id",
-  [validateObjectId(Destination)],
+  [validateObjectId(Category)],
   async (req: Request, res: Response) => {
     const result = await res.locals.document;
     res.json(result);
-  }
+  },
 );
 
 router.post(
@@ -55,75 +55,62 @@ router.post(
     cleanUpListener,
     dynamicUpload,
     parseJsonDataField,
-    validateReq(createDestinationSchema, "body"),
-    validateUniqueness("name", Destination),
+    validateReq(createCategorySchema, "body"),
+    validateUniqueness("name", Category),
   ],
   async (req: Request, res: Response) => {
     const result = await handleFilesProcessing(endpoint, req);
 
-    const createdDestination = await createDestination({
+    const createdCategory = await createCategory({
       _id: req.id,
       ...res.locals.data,
       ...result,
     });
 
-    res.status(201).json(createdDestination);
-  }
+    res.status(201).json(createdCategory);
+  },
 );
 
 router.put(
   "/:id",
   [
     authz,
-    validateObjectId(Destination),
+    validateObjectId(Category),
     cleanUpListener,
     dynamicUpload,
     parseJsonDataField,
-    validateReq(updateDestinationSchema, "body"),
-    validateUniqueness("name", Destination),
+    validateReq(updateCategorySchema, "body"),
+    validateUniqueness("name", Category),
   ],
   async (req: Request, res: Response) => {
-    const existingDestination = res.locals.document;
+    const existingCategory = res.locals.document;
 
     // Handle file deletions and updates
     const fileUpdates = await handleFilesUpdateProcessing(
       endpoint,
       req,
-      existingDestination
+      existingCategory,
     );
 
-    const updatedDestination = await updateDestination(req.id!, {
+    const updatedCategory = await updateCategory(req.params.id, {
       ...res.locals.data,
       ...fileUpdates,
     });
 
-    res.status(201).json(updatedDestination);
-  }
-);
-
-router.put(
-  "/",
-  [authz, validateObjectId(Destination)],
-  async (req: Request, res: Response) => {
-    const updatedDestination = await updateDestination(
-      req.id!,
-      res.locals.data
-    );
-
-    res.status(200).json(updatedDestination);
-  }
+    res.status(200).json(updatedCategory);
+  },
 );
 
 router.delete(
   "/:id",
-  [authz, validateObjectId(Destination)],
+  [authz, validateObjectId(Category)],
   async (req: Request, res: Response) => {
-    await handleBulkDeleteById(endpoint, req.id);
+    await handleBulkDeleteById(endpoint, req.params.id);
 
-    const deletedDestination = await deleteDestination(req.id!);
+    const deletedCategory = await deleteCategory(req.params.id);
 
-    res.status(200).json(deletedDestination);
-  }
+    res.status(200).json(deletedCategory);
+  },
 );
 
 export default router;

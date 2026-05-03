@@ -1,9 +1,10 @@
 import type { Express } from "express";
 import mongoose from "mongoose";
 import error from "../middleware/error.js";
-import destinations from "../routes/destinations.js";
-import projects from "../routes/projects.js";
+import categories from "../routes/categories.js";
+import contents from "../routes/contents.js";
 import signin from "../routes/signin.js";
+import uploaders from "../routes/uploaders.js";
 
 export default function (app: Express) {
   app.get("/", (req, res) => res.json(`Hello from the home page!!`));
@@ -20,9 +21,10 @@ export default function (app: Express) {
     });
   });
 
+  app.use("/api/uploaders", uploaders);
   app.use("/api/signin", signin);
-  app.use("/api/projects", projects);
-  app.use("/api/destinations", destinations);
+  app.use("/api/contents", contents);
+  app.use("/api/categories", categories);
 
   app.use(error);
 }

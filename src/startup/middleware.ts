@@ -7,7 +7,7 @@ import rateLimit from "express-rate-limit";
 export default function (app: Express) {
   app.use(express.json({ limit: "10mb" }));
 
-  app.use(express.static("uploads"));
+  app.use(express.static("public"));
 
   app.use(
     cors({
