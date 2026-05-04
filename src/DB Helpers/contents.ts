@@ -23,8 +23,6 @@ export async function getContents(
   if (filters) {
     if (filters.category)
       filterConstructor.category = new Types.ObjectId(filters.category);
-    if (filters.author)
-      filterConstructor.author = { $regex: filters.author, $options: "i" };
     if (filters.rating) filterConstructor.rating = filters.rating;
     if (filters.searchKey)
       filterConstructor.$text = { $search: filters.searchKey };
@@ -50,7 +48,10 @@ export async function getContents(
         type: 1,
         mainImage: 1,
         gallery: 1,
+        audio: 1,
+        pdf: 1,
         isActive: 1,
+        rating: 1,
         description: 1,
         category: {
           $arrayElemAt: ["$categoryInfo.name", 0],
