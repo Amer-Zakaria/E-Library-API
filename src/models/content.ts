@@ -85,7 +85,6 @@ export const contentFilterSchema = z
     category: z.string().refine((val) => isValidObjectId(val), {
       message: "Invalid MongoDB ObjectId",
     }),
-    author: z.string().trim(),
     rating: z.coerce.number().min(1).max(5),
     searchKey: z.string().trim(),
   })
