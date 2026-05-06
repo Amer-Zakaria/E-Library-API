@@ -5,11 +5,14 @@ import { getFieldConfig } from "./upload.config.js";
 import { FileUtils } from "./file.utils.js";
 
 export class FileStorageService {
-  constructor(private endpoint: string, private fileUtils: FileUtils) {}
+  constructor(
+    private endpoint: string,
+    private fileUtils: FileUtils,
+  ) {}
 
-  // Process entire req.files object like multer
+  // Process the entire req.files object
   public async processFiles(
-    req: Request
+    req: Request,
   ): Promise<{ [fieldName: string]: string | string[] }> {
     const files = req.files!;
     const entityId = req.id!;
@@ -32,8 +35,8 @@ export class FileStorageService {
           file.fieldname,
           file.originalname,
           file.mimetype,
-          req
-        )
+          req,
+        ),
       );
 
       const uploadedKeys = await Promise.all(uploadPromises);
@@ -52,12 +55,12 @@ export class FileStorageService {
   public createFileFilter(): (
     req: Request,
     file: Express.Multer.File,
-    cb: FileFilterCallback
+    cb: FileFilterCallback,
   ) => void {
     return (
       req: Request,
       file: Express.Multer.File,
-      cb: FileFilterCallback
+      cb: FileFilterCallback,
     ) => {
       try {
         const endpoint = this.endpoint;
