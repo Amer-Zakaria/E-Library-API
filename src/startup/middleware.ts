@@ -15,7 +15,12 @@ export default function (app: Express) {
         process.env.DASHBOARD_URL as string,
         process.env.CUSTOMER_UI_URL as string,
       ],
-      allowedHeaders: ["x-auth-token", "Content-Type"],
+      allowedHeaders: [
+        "x-auth-token",
+        "Content-Type",
+        "browserId",
+        "x-browser-id",
+      ],
       exposedHeaders: ["x-auth-token"],
       preflightContinue: true,
       methods: ["GET", "PUT", "POST", "PATCH", "DELETE"],

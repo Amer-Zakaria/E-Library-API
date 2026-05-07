@@ -5,6 +5,7 @@ import categories from "../routes/categories.js";
 import contents from "../routes/contents.js";
 import signin from "../routes/signin.js";
 import uploaders from "../routes/uploaders.js";
+import track from "../routes/track.js";
 
 export default function (app: Express) {
   app.get("/", (req, res) => res.json(`Hello from the home page!!`));
@@ -25,6 +26,7 @@ export default function (app: Express) {
   app.use("/api/signin", signin);
   app.use("/api/contents", contents);
   app.use("/api/categories", categories);
+  app.use("/api/track", track);
 
   app.use(error);
 }

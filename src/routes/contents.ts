@@ -27,6 +27,7 @@ import {
   handleFilesProcessing,
   handleFilesUpdateProcessing,
 } from "../utils/uploads-unit/index.js";
+import trackViewMiddleware from "../middleware/trackViews.js";
 
 const endpoint = "contents";
 
@@ -52,7 +53,7 @@ router.post(
 
 router.get(
   "/:id",
-  [validateObjectId(Content)],
+  [validateObjectId(Content), trackViewMiddleware],
   async (req: Request, res: Response) => {
     const result = await res.locals.document.populate("category");
     res.json(result);
